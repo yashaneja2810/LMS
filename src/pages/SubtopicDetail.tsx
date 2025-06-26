@@ -47,6 +47,80 @@ function proseToBullets(text: string): string[] {
     .filter(line => line.length > 0);
 }
 
+// Helper function to safely get video thumbnail URL
+function getVideoThumbnail(video: any): string {
+  try {
+    console.log('Video data structure:', video); // Debug log
+    
+    // Handle simplified structure (from StudyMaterial.tsx)
+    if (video?.thumbnail) {
+      return video.thumbnail;
+    }
+    
+    // Handle original YouTube API structure
+    if (video?.snippet?.thumbnails?.medium?.url) {
+      return video.snippet.thumbnails.medium.url;
+    }
+    if (video?.snippet?.thumbnails?.default?.url) {
+      return video.snippet.thumbnails.default.url;
+    }
+    if (video?.snippet?.thumbnails?.high?.url) {
+      return video.snippet.thumbnails.high.url;
+    }
+    
+    // Fallback to a simple SVG placeholder
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNjAgOTBDMTYwIDkwIDE2MCA5MCAxNjAgOTBDMTYwIDkwIDE2MCA5MCAxNjAgOTBaIiBmaWxsPSIjOUI5QkEwIi8+Cjx0ZXh0IHg9IjE2MCIgeT0iMTEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNjc3NDhCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiPk5vIFRodW1ibmFpbDwvdGV4dD4KPC9zdmc+';
+  } catch (error) {
+    console.error('Error getting thumbnail:', error);
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNjAgOTBDMTYwIDkwIDE2MCA5MCAxNjAgOTBDMTYwIDkwIDE2MCA5MCAxNjAgOTBaIiBmaWxsPSIjOUI5QkEwIi8+Cjx0ZXh0IHg9IjE2MCIgeT0iMTEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNjc3NDhCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiPk5vIFRodW1ibmFpbDwvdGV4dD4KPC9zdmc+';
+  }
+}
+
+// Helper function to safely get video title
+function getVideoTitle(video: any): string {
+  try {
+    // Handle simplified structure
+    if (video?.title) {
+      return video.title;
+    }
+    
+    // Handle original YouTube API structure
+    return video?.snippet?.title || 'Untitled Video';
+  } catch (error) {
+    return 'Untitled Video';
+  }
+}
+
+// Helper function to safely get video channel title
+function getVideoChannelTitle(video: any): string {
+  try {
+    // Handle simplified structure
+    if (video?.channelTitle) {
+      return video.channelTitle;
+    }
+    
+    // Handle original YouTube API structure
+    return video?.snippet?.channelTitle || 'Unknown Channel';
+  } catch (error) {
+    return 'Unknown Channel';
+  }
+}
+
+// Helper function to safely get video ID
+function getVideoId(video: any): string {
+  try {
+    // Handle simplified structure
+    if (video?.id) {
+      return video.id;
+    }
+    
+    // Handle original YouTube API structure
+    return video?.id?.videoId || video?.id || 'unknown';
+  } catch (error) {
+    return 'unknown';
+  }
+}
+
 export function SubtopicDetail() {
   const { topic = '', subtopic = '' } = useParams();
   const { subtopicContent } = useStudyMaterial();
@@ -55,20 +129,20 @@ export function SubtopicDetail() {
 
   return (
     <div className="max-w-4xl mx-auto py-10 space-y-8">
-      <Link to={`/study`} className="text-blue-500 hover:text-blue-700 underline mb-4 inline-block">&larr; Back to Study Material</Link>
-      <h1 className="text-3xl font-extrabold text-blue-700 mb-6 text-center drop-shadow">{decodedSubtopic.replace(/%20/g, ' ')}</h1>
+      <Link to={`/study`} className="text-black hover:text-gray-600 underline mb-4 inline-block">&larr; Back to Study Material</Link>
+      <h1 className="text-3xl font-extrabold text-black mb-6 text-center">{decodedSubtopic.replace(/%20/g, ' ')}</h1>
       {!content && (
         <div className="text-red-500 text-center font-semibold bg-red-50 border border-red-200 rounded-xl p-6 shadow">No data found for this subtopic. Please go back and generate the topic again.</div>
       )}
       {content && (
         <>
           {content.documentation && (
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-blue-100 mb-8">
-              <h2 className="text-2xl font-bold text-blue-700 mb-4">Documentation</h2>
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 mb-8">
+              <h2 className="text-2xl font-bold text-black mb-4">Documentation</h2>
               <div className="space-y-6">
                 {parseGeminiContent(content.documentation).map((block, idx) =>
                   block.type === 'code' && block.content.trim() ? (
-                    <div key={idx} className="rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                    <div key={idx} className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
                       <MonacoEditor
                         height="300px"
                         defaultLanguage={block.language}
@@ -78,7 +152,7 @@ export function SubtopicDetail() {
                       />
                     </div>
                   ) : block.type === 'text' && block.content.trim() ? (
-                    <ul key={idx} className="list-disc pl-6 space-y-2 text-slate-800 text-base leading-relaxed">
+                    <ul key={idx} className="list-disc pl-6 space-y-2 text-gray-800 text-base leading-relaxed">
                       {proseToBullets(block.content).map((point, i) => (
                         <li key={i}>{point}</li>
                       ))}
@@ -89,34 +163,48 @@ export function SubtopicDetail() {
             </div>
           )}
           {content.videos && content.videos.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-blue-100 mb-8">
-              <h2 className="text-2xl font-bold text-blue-700 mb-4">Related YouTube Videos</h2>
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 mb-8">
+              <h2 className="text-2xl font-bold text-black mb-4">Related YouTube Videos</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {content.videos.map((video: any) => (
-                  <a
-                    key={video.id.videoId}
-                    href={`https://www.youtube.com/watch?v=${video.id.videoId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block bg-slate-50 rounded-lg overflow-hidden border border-blue-100 hover:border-blue-400 transition-all shadow"
-                  >
-                    <img src={video.snippet.thumbnails.medium.url} alt={video.snippet.title} className="w-full h-40 object-cover" />
-                    <div className="p-3">
-                      <div className="font-semibold text-blue-700 mb-1">{video.snippet.title}</div>
-                      <div className="text-slate-500 text-sm">{video.snippet.channelTitle}</div>
-                    </div>
-                  </a>
-                ))}
+                {content.videos.map((video: any, index: number) => {
+                  const videoId = getVideoId(video);
+                  const thumbnailUrl = getVideoThumbnail(video);
+                  const title = getVideoTitle(video);
+                  const channelTitle = getVideoChannelTitle(video);
+                  
+                  return (
+                    <a
+                      key={videoId || index}
+                      href={`https://www.youtube.com/watch?v=${videoId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:border-gray-400 transition-all shadow-sm hover:shadow-md"
+                    >
+                      <img 
+                        src={thumbnailUrl} 
+                        alt={title} 
+                        className="w-full h-40 object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNjAgOTBDMTYwIDkwIDE2MCA5MCAxNjAgOTBDMTYwIDkwIDE2MCA5MCAxNjAgOTBaIiBmaWxsPSIjOUI5QkEwIi8+Cjx0ZXh0IHg9IjE2MCIgeT0iMTEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNjc3NDhCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiPk5vIFRodW1ibmFpbDwvdGV4dD4KPC9zdmc+';
+                        }}
+                      />
+                      <div className="p-3">
+                        <div className="font-semibold text-black mb-1 line-clamp-2">{title}</div>
+                        <div className="text-gray-500 text-sm">{channelTitle}</div>
+                      </div>
+                    </a>
+                  );
+                })}
               </div>
             </div>
           )}
           {content.websites && content.websites.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-blue-100 mb-8">
-              <h2 className="text-2xl font-bold text-blue-700 mb-4">Recommended Websites</h2>
-              <ul className="list-disc pl-6 space-y-2 text-slate-700">
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 mb-8">
+              <h2 className="text-2xl font-bold text-black mb-4">Recommended Websites</h2>
+              <ul className="list-disc pl-6 space-y-2 text-gray-700">
                 {content.websites.map((url, idx) => (
                   <li key={idx}>
-                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 underline break-all">{url}</a>
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-black hover:text-gray-600 underline break-all">{url}</a>
                   </li>
                 ))}
               </ul>

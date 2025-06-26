@@ -3,6 +3,8 @@ import { generateWithGemini } from '../lib/gemini';
 import { Link } from 'react-router-dom';
 import { useStudyMaterial, Subtopic, SubtopicContent } from './StudyMaterialContext';
 import { BookOpen, Download, FileText } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 // PDF generation imports (you may need to install these packages)
 // npm install jspdf html2canvas
@@ -76,6 +78,7 @@ async function fetchYouTubeVideos(query: string, apiKey: string) {
 
 export function StudyMaterial() {
   const { topic, setTopic, subtopics, setSubtopics, subtopicContent, setSubtopicContent } = useStudyMaterial();
+  const { user } = useAuth();
   const [selectedSubtopic, setSelectedSubtopic] = useState<string>('');
   const [input, setInput] = useState(topic || '');
   const [loading, setLoading] = useState(false);
@@ -472,7 +475,7 @@ export function StudyMaterial() {
       let yPosition = margin;
 
       // Add title page with gradient-like effect
-      pdf.setFillColor(59, 130, 246); // Blue background
+      pdf.setFillColor(59, 130, 246);
       pdf.rect(0, 0, pageWidth, 60, 'F');
       
       pdf.setFontSize(28);
@@ -576,7 +579,7 @@ export function StudyMaterial() {
               pdf.text(heading, margin, yPosition);
               yPosition += 12;
               pdf.setTextColor(0, 0, 0);
-            } else if (cleanedSection.includes('```')) {
+            } else {
               // This is a code block
               const codeMatch = cleanedSection.match(/```[\s\S]*?```/);
               if (codeMatch) {
@@ -606,7 +609,7 @@ export function StudyMaterial() {
                 // Code text with smaller font and proper colors
                 pdf.setFontSize(9); // Smaller font size
                 pdf.setFont('courier', 'normal');
-                pdf.setTextColor(220, 220, 220); // Light gray text
+                pdf.setTextColor(220, 220, 220);
                 
                 // Add code with proper padding
                 codeLines.forEach((line, index) => {
@@ -632,41 +635,41 @@ export function StudyMaterial() {
                 
                 yPosition += codeHeight + 8;
                 pdf.setTextColor(0, 0, 0); // Reset to black
-              }
-            } else {
-              // Regular text - FULL CONTENT
-              pdf.setFontSize(11);
-              pdf.setFont('helvetica', 'normal');
-              
-              // Handle bullet points and lists
-              if (cleanedSection.includes('•') || cleanedSection.includes('-')) {
-                const lines = cleanedSection.split('\n');
-                for (const line of lines) {
-                  if (yPosition > pageHeight - 20) {
+              } else {
+                // Regular text - FULL CONTENT
+                pdf.setFontSize(11);
+                pdf.setFont('helvetica', 'normal');
+                
+                // Handle bullet points and lists
+                if (cleanedSection.includes('•') || cleanedSection.includes('-')) {
+                  const lines = cleanedSection.split('\n');
+                  for (const line of lines) {
+                    if (yPosition > pageHeight - 20) {
+                      pdf.addPage();
+                      yPosition = margin;
+                    }
+                    
+                    const cleanLine = cleanText(line);
+                    if (cleanLine.trim()) {
+                      pdf.text(cleanLine, margin, yPosition);
+                      yPosition += 7;
+                    }
+                  }
+                } else {
+                  const textLines = splitTextProperly(cleanedSection, contentWidth);
+                  
+                  // Check if text fits on current page
+                  const textHeight = textLines.length * 7;
+                  if (yPosition + textHeight > pageHeight - 20) {
                     pdf.addPage();
                     yPosition = margin;
                   }
                   
-                  const cleanLine = cleanText(line);
-                  if (cleanLine.trim()) {
-                    pdf.text(cleanLine, margin, yPosition);
-                    yPosition += 7;
-                  }
+                  textLines.forEach((line, index) => {
+                    pdf.text(line, margin, yPosition + (index * 7));
+                  });
+                  yPosition += textHeight + 6;
                 }
-              } else {
-                const textLines = splitTextProperly(cleanedSection, contentWidth);
-                
-                // Check if text fits on current page
-                const textHeight = textLines.length * 7;
-                if (yPosition + textHeight > pageHeight - 20) {
-                  pdf.addPage();
-                  yPosition = margin;
-                }
-                
-                textLines.forEach((line, index) => {
-                  pdf.text(line, margin, yPosition + (index * 7));
-                });
-                yPosition += textHeight + 6;
               }
             }
           }
@@ -727,9 +730,38 @@ export function StudyMaterial() {
         yPosition += 25; // Space between subtopics
       }
 
-      // Save PDF
+      // Generate PDF blob and upload to Supabase
       const fileName = `${topic.replace(/[^a-zA-Z0-9]/g, '_')}_study_material.pdf`;
-      pdf.save(fileName);
+      const pdfBlob = pdf.output('blob');
+      
+      // Upload to Supabase storage
+      if (user) {
+        const userFolder = user.id;
+        const filePath = `${userFolder}/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('pdf')
+          .upload(filePath, pdfBlob, {
+            contentType: 'application/pdf',
+            cacheControl: '3600',
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error('Error uploading PDF to Supabase:', uploadError);
+          // Fallback: save locally if upload fails
+          pdf.save(fileName);
+          setError('PDF saved locally. Upload to cloud failed.');
+        } else {
+          console.log('PDF uploaded successfully to Supabase');
+          // Also save locally for immediate access
+          pdf.save(fileName);
+        }
+      } else {
+        // No user logged in, save locally only
+        pdf.save(fileName);
+        setError('Please log in to save PDFs to cloud storage.');
+      }
       
     } catch (error: any) {
       console.error('PDF generation error:', error);

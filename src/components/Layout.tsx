@@ -36,6 +36,7 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Tests', href: '/tests', icon: FileText },
     { name: 'Performance', href: '/performance', icon: BarChart3 },
     { name: 'Study', href: '/study', icon: BookOpen },
+    { name: 'PDFs', href: '/pdfs', icon: FileText },
   ]
 
   if (!user) {
