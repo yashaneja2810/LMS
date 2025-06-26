@@ -500,7 +500,7 @@ Provide a detailed evaluation in JSON format:
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
             </select>
-          </div>
+        </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Number of Questions</label>
             <select
@@ -513,7 +513,7 @@ Provide a detailed evaluation in JSON format:
               <option value={15}>15 Questions</option>
               <option value={20}>20 Questions</option>
             </select>
-          </div>
+                  </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Time Limit (minutes)</label>
             <select
@@ -526,10 +526,10 @@ Provide a detailed evaluation in JSON format:
               <option value={45}>45 minutes</option>
               <option value={60}>60 minutes</option>
             </select>
-          </div>
-        </div>
+                </div>
+              </div>
         <div className="mt-8 flex justify-center">
-          <button
+              <button
             onClick={generateCustomTest}
             disabled={generatingTest || !customTestConfig.topic.trim()}
             className="glass-btn flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
@@ -538,15 +538,15 @@ Provide a detailed evaluation in JSON format:
               <>
                 <Brain className="h-5 w-5 mr-2 animate-spin" />
                 Generating Test...
-              </>
-            ) : (
-              <>
-                <Play className="h-5 w-5 mr-2" />
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-5 w-5 mr-2" />
                 Start Test
-              </>
-            )}
-          </button>
-        </div>
+                  </>
+                )}
+              </button>
+            </div>
       </div>
 
       {/* Features */}

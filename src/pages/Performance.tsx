@@ -346,8 +346,8 @@ export function Performance() {
             <BookOpen className="h-5 w-5 mr-2 text-black" />
             Topics Covered
           </h2>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={topicDistribution}
@@ -409,25 +409,25 @@ export function Performance() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="test" stroke="#64748b" fontSize={12} />
                     <YAxis stroke="#64748b" fontSize={12} domain={[0, 100]} />
-                    <Tooltip 
-                      contentStyle={{ 
+              <Tooltip 
+                contentStyle={{ 
                         backgroundColor: 'white', 
                         border: '1px solid #e2e8f0',
-                        borderRadius: '8px',
+                  borderRadius: '8px',
                         color: '#1e293b'
-                      }} 
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="score" 
+                }} 
+              />
+              <Line 
+                type="monotone" 
+                dataKey="score" 
                       stroke="#818cf8" 
-                      strokeWidth={3}
+                strokeWidth={3}
                       dot={{ fill: '#818cf8', strokeWidth: 2, r: 6 }}
                       activeDot={{ r: 8, fill: '#67e8f9' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
             </div>
           )
         })}
@@ -435,11 +435,11 @@ export function Performance() {
 
       {/* Recent Tests */}
       <div className="glass-card animate-fade-in">
-        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-black flex items-center">
             <Activity className="h-5 w-5 mr-2 text-black" />
             Recent Tests
-          </h2>
+            </h2>
           <Link
             to="/tests"
             className="glass-btn"
@@ -448,13 +448,13 @@ export function Performance() {
             <ArrowRight className="h-4 w-4 ml-1" />
           </Link>
         </div>
-        <div className="space-y-4">
+          <div className="space-y-4">
           {testResults.slice(-6).reverse().map((test, index) => {
-            const score = Math.round((test.score / test.total_questions) * 100)
+              const score = Math.round((test.score / test.total_questions) * 100)
             const needsStudyMaterial = score < 70
-            return (
+              return (
               <div key={test.id} className="p-4 glass rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-200 animate-pop">
-                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <h3 className="text-black font-semibold mb-1 truncate">{test.test_title}</h3>
                     <div className="flex items-center text-sm text-gray-500 mb-2">
@@ -501,7 +501,7 @@ export function Performance() {
                         <div className="flex items-center text-sm text-indigo-700">
                           <Target className="h-4 w-4 mr-2" />
                           <span>Score {score}% - Consider reviewing <strong>{test.topic}</strong></span>
-                        </div>
+                      </div>
                         <button
                           onClick={() => handleGenerateStudyMaterialForTest(test)}
                           className="glass-btn px-3 py-1 text-xs"
@@ -513,10 +513,10 @@ export function Performance() {
                     </div>
                   </div>
                 )}
-              </div>
-            )
-          })}
-        </div>
+                </div>
+              )
+            })}
+          </div>
         {testResults.length > 6 && (
           <div className="mt-4 text-center">
             <Link
